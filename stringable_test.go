@@ -1,4 +1,4 @@
-package stringable
+package strconvx
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ggicci/stringable/internal"
+	"github.com/ggicci/strconvx/internal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -136,7 +136,7 @@ func TestNew_ByteSlice(t *testing.T) {
 	assert.Error(t, sv.FromString("hello"))
 }
 
-type StructNotStringable struct {
+type StructNotStringConvertable struct {
 	Name string
 }
 
@@ -148,7 +148,7 @@ func TestNew_ErrNotPointer(t *testing.T) {
 		assert.Nil(t, sb)
 	}
 
-	var s StructNotStringable
+	var s StructNotStringConvertable
 	sb, err := New(s)
 	assert.ErrorIs(t, err, ErrNotPointer)
 	assert.Nil(t, sb)
@@ -162,7 +162,7 @@ func TestNew_ErrNilPointer(t *testing.T) {
 }
 
 func TestNew_ErrUnsupportedType(t *testing.T) {
-	var s StructNotStringable
+	var s StructNotStringConvertable
 	sv, err := New(&s)
 	assert.ErrorIs(t, err, ErrUnsupportedType)
 	assert.Nil(t, sv)
@@ -190,7 +190,7 @@ func testInteger[T Numeric](t *testing.T, vSuccess T, invalidStr string) {
 	assert.Error(t, sv.FromString(invalidStr))
 }
 
-func testTime(t *testing.T, sv Stringable, fromStr string, expected time.Time, expectedToStr string) {
+func testTime(t *testing.T, sv StringConverter, fromStr string, expected time.Time, expectedToStr string) {
 	assert.NoError(t, sv.FromString(fromStr))
 	assert.True(t, equalTime(expected, time.Time(*sv.(*internal.Time))))
 	ts, err := sv.ToString()

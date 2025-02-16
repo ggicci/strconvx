@@ -1,4 +1,4 @@
-package stringable
+package strconvx
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestNamespace_Adapt(t *testing.T) {
 	ns := NewNamespace()
-	typ, adaptor := ToAnyStringableAdaptor(func(b *bool) (Stringable, error) {
+	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
 		return (*YesNo)(b), nil
 	})
 	ns.Adapt(typ, adaptor)

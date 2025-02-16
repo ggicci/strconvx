@@ -303,7 +303,7 @@ func nanoSecondPrecision(value string) string {
 	return value + strings.Repeat("0", 9-len(value))
 }
 
-// ByteSlice is a wrapper of []byte to implement Stringable.
+// ByteSlice is a wrapper of []byte to implement StringConverter.
 // NOTE: we're using base64.StdEncoding here, not base64.URLEncoding.
 type ByteSlice []byte
 

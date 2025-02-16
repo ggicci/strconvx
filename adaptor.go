@@ -1,15 +1,15 @@
-package stringable
+package strconvx
 
 import (
 	"fmt"
 	"reflect"
 )
 
-type StringableAdaptor[T any] func(*T) (Stringable, error)
-type AnyStringableAdaptor func(any) (Stringable, error)
+type StringConverterAdaptor[T any] func(*T) (StringConverter, error)
+type AnyStringConverterAdaptor func(any) (StringConverter, error)
 
-func ToAnyStringableAdaptor[T any](adapt StringableAdaptor[T]) (reflect.Type, AnyStringableAdaptor) {
-	return typeOf[T](), func(v any) (Stringable, error) {
+func ToAnyStringConverterAdaptor[T any](adapt StringConverterAdaptor[T]) (reflect.Type, AnyStringConverterAdaptor) {
+	return typeOf[T](), func(v any) (StringConverter, error) {
 		if cv, ok := v.(*T); ok {
 			return adapt(cv)
 		} else {
@@ -18,9 +18,9 @@ func ToAnyStringableAdaptor[T any](adapt StringableAdaptor[T]) (reflect.Type, An
 	}
 }
 
-var builtinStringableAdaptors = make(map[reflect.Type]AnyStringableAdaptor)
+var builtinAdaptors = make(map[reflect.Type]AnyStringConverterAdaptor)
 
-func builtinStringable[T any](adaptor StringableAdaptor[T]) {
-	typ, anyAdaptor := ToAnyStringableAdaptor[T](adaptor)
-	builtinStringableAdaptors[typ] = anyAdaptor
+func builtinStringConverter[T any](adaptor StringConverterAdaptor[T]) {
+	typ, anyAdaptor := ToAnyStringConverterAdaptor[T](adaptor)
+	builtinAdaptors[typ] = anyAdaptor
 }

@@ -15,9 +15,9 @@ test/cover:
 .PHONY: test/report
 test/report:
 	if [[ "$$HOSTNAME" =~ "codespaces-"* ]]; then \
-		mkdir -p /tmp/stringable_test; \
-		$(GOCOVER) -html=main.cover.out -o /tmp/stringable_test/coverage.html; \
-		sudo python -m http.server -d /tmp/stringable_test -b localhost 80; \
+		mkdir -p /tmp/strconvx_test; \
+		$(GOCOVER) -html=main.cover.out -o /tmp/strconvx_test/coverage.html; \
+		sudo python -m http.server -d /tmp/strconvx_test -b localhost 80; \
 	else \
 		$(GOCOVER) -html=main.cover.out; \
 	fi

@@ -1,4 +1,4 @@
-package stringable
+package strconvx
 
 import (
 	"errors"
@@ -30,24 +30,24 @@ func (yn *YesNo) FromString(s string) error {
 	return nil
 }
 
-func TestToAnyStringableAdaptor(t *testing.T) {
-	typ, adaptor := ToAnyStringableAdaptor[bool](func(b *bool) (Stringable, error) {
+func TestToAnyStringConverterAdaptor(t *testing.T) {
+	typ, adaptor := ToAnyStringConverterAdaptor[bool](func(b *bool) (StringConverter, error) {
 		return (*YesNo)(b), nil
 	})
 	assert.Equal(t, typ, typeOf[bool]())
 
 	var validBoolean bool = true
-	stringable, err := adaptor(&validBoolean)
+	converter, err := adaptor(&validBoolean)
 	assert.NoError(t, err)
-	v, err := stringable.ToString()
+	v, err := converter.ToString()
 	assert.NoError(t, err)
 	assert.Equal(t, "yes", v)
-	assert.NoError(t, stringable.FromString("no"))
+	assert.NoError(t, converter.FromString("no"))
 	assert.False(t, validBoolean)
 
 	var invalidType int = 0
-	stringable, err = adaptor(&invalidType)
+	converter, err = adaptor(&invalidType)
 	assert.ErrorIs(t, err, ErrTypeMismatch)
-	assert.Nil(t, stringable)
+	assert.Nil(t, converter)
 	assert.ErrorContains(t, err, "cannot convert *int to *bool")
 }

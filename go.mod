@@ -1,4 +1,4 @@
-module github.com/ggicci/stringable
+module github.com/ggicci/strconvx
 
 go 1.22.4
 
