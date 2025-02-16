@@ -1,4 +1,4 @@
-package stringable
+package strconvx
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 func TestHybridCoder_TestMarshalerOnly(t *testing.T) {
 	apple := &TextMarshalerApple{}
 	rv := reflect.ValueOf(apple)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -24,7 +24,7 @@ func TestHybridCoder_TestMarshalerOnly(t *testing.T) {
 func TestHybridCoder_TextUnmarshalerOnly(t *testing.T) {
 	banana := &TextUnmarshalerBanana{}
 	rv := reflect.ValueOf(banana)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -39,7 +39,7 @@ func TestHybridCoder_TextUnmarshalerOnly(t *testing.T) {
 func TestHybridCoder_TestMarshaler_and_TextUnmarshaler(t *testing.T) {
 	orange := &TextMarshalerAndUnmarshalerOrange{Content: "orange"}
 	rv := reflect.ValueOf(orange)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -54,7 +54,7 @@ func TestHybridCoder_TestMarshaler_and_TextUnmarshaler(t *testing.T) {
 func TestHybridCoder_StringMarshaler_TakesPrecedence(t *testing.T) {
 	peach := &StringMarshalerAndTextMarshalerPeach{Content: "peach"}
 	rv := reflect.ValueOf(peach)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -68,7 +68,7 @@ func TestHybridCoder_StringMarshaler_TakesPrecedence(t *testing.T) {
 func TestHybridCoder_StringUnmarshaler_TakesPrecedence(t *testing.T) {
 	peach := &StringUnmarshalerAndTextUnmarshalerPeach{Content: "peach"}
 	rv := reflect.ValueOf(peach)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -83,7 +83,7 @@ func TestHybridCoder_StringUnmarshaler_TakesPrecedence(t *testing.T) {
 func TestHybridCoder_StringMarshaler_and_TextUnmarshaler(t *testing.T) {
 	pineapple := &StringMarshalerAndTextUnmarshalerPineapple{Content: "pineapple"}
 	rv := reflect.ValueOf(pineapple)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -98,7 +98,7 @@ func TestHybridCoder_StringMarshaler_and_TextUnmarshaler(t *testing.T) {
 func TestHybridCoder_MarshalText_Error(t *testing.T) {
 	watermelon := &TextMarshalerSpoiledWatermelon{}
 	rv := reflect.ValueOf(watermelon)
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
@@ -113,7 +113,7 @@ func TestHybridCoder_ErrCannotInterface(t *testing.T) {
 	v := mystruct{unexportedName: "mystruct"}
 	rv := reflect.ValueOf(v)
 
-	sb := createHybridStringable(rv.Field(0))
+	sb := createHybridStringConverter(rv.Field(0))
 	assert.Nil(t, sb)
 }
 
@@ -121,13 +121,13 @@ func TestHybridCoder_NilOnNoInterfacesDetected(t *testing.T) {
 	var zero zeroInterface
 	rv := reflect.ValueOf(zero)
 
-	sb := createHybridStringable(rv)
+	sb := createHybridStringConverter(rv)
 	assert.Nil(t, sb)
 }
 
 // TextMarshalerApple implements:
-//   - StringMarshaler - no
-//   - StringUnmarshaler - no
+//   - CanToString - no
+//   - CanFromString - no
 //   - encoding.TextMarshaler - yes
 //   - encoding.TextUnmarshaler - no
 type TextMarshalerApple struct{}
@@ -137,8 +137,8 @@ func (t *TextMarshalerApple) MarshalText() ([]byte, error) {
 }
 
 // TextUnmarshalerBanana implements:
-//   - StringMarshaler - no
-//   - StringUnmarshaler - no
+//   - CanToString - no
+//   - CanFromString - no
 //   - encoding.TextMarshaler - no
 //   - encoding.TextUnmarshaler - yes
 type TextUnmarshalerBanana struct{ Content string }
@@ -149,8 +149,8 @@ func (t *TextUnmarshalerBanana) UnmarshalText(text []byte) error {
 }
 
 // TextMarshalerAndUnmarshalerOrange implements:
-//   - StringMarshaler - no
-//   - StringUnmarshaler - no
+//   - CanToString - no
+//   - CanFromString - no
 //   - encoding.TextMarshaler - yes
 //   - encoding.TextUnmarshaler - yes
 type TextMarshalerAndUnmarshalerOrange struct{ Content string }
@@ -165,8 +165,8 @@ func (t *TextMarshalerAndUnmarshalerOrange) UnmarshalText(text []byte) error {
 }
 
 // StringMarshalerAndTextMarshalerPeach implements:
-//   - StringMarshaler - yes
-//   - StringUnmarshaler - no
+//   - CanToString - yes
+//   - CanFromString - no
 //   - encoding.TextMarshaler - yes
 //   - encoding.TextUnmarshaler - no
 type StringMarshalerAndTextMarshalerPeach struct{ Content string }
@@ -180,8 +180,8 @@ func (s *StringMarshalerAndTextMarshalerPeach) MarshalText() ([]byte, error) {
 }
 
 // StringUnmarshalerAndTextUnmarshalerPeach implements:
-//   - StringMarshaler - no
-//   - StringUnmarshaler - yes
+//   - CanToString - no
+//   - CanFromString - yes
 //   - encoding.TextMarshaler - no
 //   - encoding.TextUnmarshaler - yes
 type StringUnmarshalerAndTextUnmarshalerPeach struct{ Content string }
@@ -197,8 +197,8 @@ func (s *StringUnmarshalerAndTextUnmarshalerPeach) UnmarshalText(text []byte) er
 }
 
 // StringMarshalerAndTextUnmarshalerPineapple implements:
-//   - StringMarshaler - yes
-//   - StringUnmarshaler - no
+//   - CanToString - yes
+//   - CanFromString - no
 //   - encoding.TextMarshaler - no
 //   - encoding.TextUnmarshaler - yes
 type StringMarshalerAndTextUnmarshalerPineapple struct{ Content string }
@@ -213,8 +213,8 @@ func (s *StringMarshalerAndTextUnmarshalerPineapple) UnmarshalText(text []byte) 
 }
 
 // StringMarshalerAndStringUnmarshalerCherry implements:
-//   - StringMarshaler - yes
-//   - StringUnmarshaler - yes
+//   - CanToString - yes
+//   - CanFromString - yes
 //   - encoding.TextMarshaler - no
 //   - encoding.TextUnmarshaler - no
 type StringMarshalerAndStringUnmarshalerCherry struct {
@@ -231,8 +231,8 @@ func (s *StringMarshalerAndStringUnmarshalerCherry) ToString() (string, error) {
 }
 
 // TextMarshalerSpoiledWatermelon implements:
-//   - StringMarshaler - no
-//   - StringUnmarshaler - no
+//   - CanToString - no
+//   - CanFromString - no
 //   - encoding.TextMarshaler - yes (but returns error)
 //   - encoding.TextUnmarshaler - no
 type TextMarshalerSpoiledWatermelon struct{}

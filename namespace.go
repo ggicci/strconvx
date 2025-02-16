@@ -1,46 +1,46 @@
-package stringable
+package strconvx
 
 import (
 	"fmt"
 	"reflect"
 	"time"
 
-	"github.com/ggicci/stringable/internal"
+	"github.com/ggicci/strconvx/internal"
 )
 
 // defaultNS is the default Namespace instance held by this package, where
 // we registered the adaptors for the builtin types, e.g. bool, int, string, etc.
 var defaultNS = NewNamespace()
 
-// Namespace is the place to register type adaptors (of AnyStringableAdaptor).
+// Namespace is the place to register type adaptors (of AnyStringConverterAdaptor).
 type Namespace struct {
-	adaptors map[reflect.Type]AnyStringableAdaptor
+	adaptors map[reflect.Type]AnyStringConverterAdaptor
 }
 
 // NewNamespace creates a namespace where you can register adaptors to
 // override/adapt the converting behaviours of existing types.
 func NewNamespace() *Namespace {
 	return &Namespace{
-		adaptors: make(map[reflect.Type]AnyStringableAdaptor),
+		adaptors: make(map[reflect.Type]AnyStringConverterAdaptor),
 	}
 }
 
-// New creates a Stringable instance from the given value. If the given value itself
-// is already a Stringable, it will return directly. Otherwise, it will try to create
-// a Stringable instance by trying the following approaches:
+// New creates a StringConverter instance from the given value. If the given value itself
+// is already a StringConverter, it will return directly. Otherwise, it will try to create
+// a StringConverter instance by trying the following approaches:
 //  1. check if there's a custom adaptor for the type of the given value,
-//     if so, use it to adapt the given value to a Stringable.
+//     if so, use it to adapt the given value to a StringConverter.
 //  2. same as above, but check the builtin adaptors, which support the builtin types,
 //     e.g. int, string, float64, etc.
 //  3. try to create a "hybrid" instance, which makes use of the methods FromString,
-//     ToString, MarshalText and UnmarshalText to fullfill the Stringable interface.
+//     ToString, MarshalText and UnmarshalText to fullfill the StringConverter interface.
 //
 // It has three options:
 //
 //	New(v)
 //
 // 1. with only default options, it will try all the 3 ways as listed above to
-// create a Stringable.
+// create a StringConverter.
 //
 //	New(v, NoHybrid())
 //
@@ -50,12 +50,12 @@ func NewNamespace() *Namespace {
 //	New(v, CompleteHybrid())
 //
 // 3. the hybrid must be a "complete" hybrid, which means it has to implement
-// both FromString and ToString method that the Stringable interface requires,
+// both FromString and ToString method that the StringConverter interface requires,
 // while a "partial"/"incomplete" hybrid, one of theses two methods can be
 // absent, and the absent one always returns an error, either
 // ErrNotStringMarshaler or ErrNotStringUnmarshaler.
-func (c *Namespace) New(v any, opts ...Option) (Stringable, error) {
-	if vs, ok := v.(Stringable); ok {
+func (c *Namespace) New(v any, opts ...Option) (StringConverter, error) {
+	if vs, ok := v.(StringConverter); ok {
 		return vs, nil
 	}
 
@@ -63,10 +63,10 @@ func (c *Namespace) New(v any, opts ...Option) (Stringable, error) {
 	for _, opt := range opts {
 		opt(options)
 	}
-	return c.createStringable(v, options)
+	return c.createStringConverter(v, options)
 }
 
-func (c *Namespace) createStringable(v any, opts *options) (Stringable, error) {
+func (c *Namespace) createStringConverter(v any, opts *options) (StringConverter, error) {
 	rv, ok := v.(reflect.Value)
 	if !ok {
 		rv = reflect.ValueOf(v)
@@ -86,13 +86,13 @@ func (c *Namespace) createStringable(v any, opts *options) (Stringable, error) {
 	}
 
 	// Check if there is a built-in adaptor for the base type.
-	if adapt, ok := builtinStringableAdaptors[baseType]; ok {
+	if adapt, ok := builtinAdaptors[baseType]; ok {
 		return adapt(rv.Interface())
 	}
 
-	// Try to create a hybrid Stringable from the reflect.Value.
+	// Try to create a hybrid StringConverter from the reflect.Value.
 	if !opts.Has(optionNoHybrid) {
-		h := createHybridStringable(rv)
+		h := createHybridStringConverter(rv)
 		if h != nil {
 			if opts.Has(optionCompleteHybrid) {
 				if err := h.(*hybrid).validateAsComplete(); err != nil {
@@ -109,16 +109,16 @@ func (c *Namespace) createStringable(v any, opts *options) (Stringable, error) {
 // Adapt registers a custom adaptor for the given type.
 //
 //  1. You must create a Namespace instance and register the adaptor there.
-//  2. Call ToAnyStringableAdaptor to create an adaptor of a specific type.
+//  2. Call ToAnyStringConverterAdaptor to create an adaptor of a specific type.
 //
 // Example:
 //
-//	ns := stringable.NewNamespace()
-//	typ, adaptor := stringable.ToAnyStringableAdaptor[bool](func(b *bool) (stringable.Stringable, error) {
+//	ns := strconvx.NewNamespace()
+//	typ, adaptor := strconvx.ToAnyStringConverterAdaptor[bool](func(b *bool) (strconvx.StringConverter, error) {
 //		// todo
 //	})
 //	ns.Adapt(typ, adaptor)
-func (c *Namespace) Adapt(typ reflect.Type, adaptor AnyStringableAdaptor) {
+func (c *Namespace) Adapt(typ reflect.Type, adaptor AnyStringConverterAdaptor) {
 	c.adaptors[typ] = adaptor
 }
 
@@ -127,22 +127,22 @@ func unsupportedType(rt reflect.Type) error {
 }
 
 func init() {
-	builtinStringable[string](func(v *string) (Stringable, error) { return (*internal.String)(v), nil })
-	builtinStringable[bool](func(v *bool) (Stringable, error) { return (*internal.Bool)(v), nil })
-	builtinStringable[int](func(v *int) (Stringable, error) { return (*internal.Int)(v), nil })
-	builtinStringable[int8](func(v *int8) (Stringable, error) { return (*internal.Int8)(v), nil })
-	builtinStringable[int16](func(v *int16) (Stringable, error) { return (*internal.Int16)(v), nil })
-	builtinStringable[int32](func(v *int32) (Stringable, error) { return (*internal.Int32)(v), nil })
-	builtinStringable[int64](func(v *int64) (Stringable, error) { return (*internal.Int64)(v), nil })
-	builtinStringable[uint](func(v *uint) (Stringable, error) { return (*internal.Uint)(v), nil })
-	builtinStringable[uint8](func(v *uint8) (Stringable, error) { return (*internal.Uint8)(v), nil })
-	builtinStringable[uint16](func(v *uint16) (Stringable, error) { return (*internal.Uint16)(v), nil })
-	builtinStringable[uint32](func(v *uint32) (Stringable, error) { return (*internal.Uint32)(v), nil })
-	builtinStringable[uint64](func(v *uint64) (Stringable, error) { return (*internal.Uint64)(v), nil })
-	builtinStringable[float32](func(v *float32) (Stringable, error) { return (*internal.Float32)(v), nil })
-	builtinStringable[float64](func(v *float64) (Stringable, error) { return (*internal.Float64)(v), nil })
-	builtinStringable[complex64](func(v *complex64) (Stringable, error) { return (*internal.Complex64)(v), nil })
-	builtinStringable[complex128](func(v *complex128) (Stringable, error) { return (*internal.Complex128)(v), nil })
-	builtinStringable[time.Time](func(v *time.Time) (Stringable, error) { return (*internal.Time)(v), nil })
-	builtinStringable[[]byte](func(b *[]byte) (Stringable, error) { return (*internal.ByteSlice)(b), nil })
+	builtinStringConverter[string](func(v *string) (StringConverter, error) { return (*internal.String)(v), nil })
+	builtinStringConverter[bool](func(v *bool) (StringConverter, error) { return (*internal.Bool)(v), nil })
+	builtinStringConverter[int](func(v *int) (StringConverter, error) { return (*internal.Int)(v), nil })
+	builtinStringConverter[int8](func(v *int8) (StringConverter, error) { return (*internal.Int8)(v), nil })
+	builtinStringConverter[int16](func(v *int16) (StringConverter, error) { return (*internal.Int16)(v), nil })
+	builtinStringConverter[int32](func(v *int32) (StringConverter, error) { return (*internal.Int32)(v), nil })
+	builtinStringConverter[int64](func(v *int64) (StringConverter, error) { return (*internal.Int64)(v), nil })
+	builtinStringConverter[uint](func(v *uint) (StringConverter, error) { return (*internal.Uint)(v), nil })
+	builtinStringConverter[uint8](func(v *uint8) (StringConverter, error) { return (*internal.Uint8)(v), nil })
+	builtinStringConverter[uint16](func(v *uint16) (StringConverter, error) { return (*internal.Uint16)(v), nil })
+	builtinStringConverter[uint32](func(v *uint32) (StringConverter, error) { return (*internal.Uint32)(v), nil })
+	builtinStringConverter[uint64](func(v *uint64) (StringConverter, error) { return (*internal.Uint64)(v), nil })
+	builtinStringConverter[float32](func(v *float32) (StringConverter, error) { return (*internal.Float32)(v), nil })
+	builtinStringConverter[float64](func(v *float64) (StringConverter, error) { return (*internal.Float64)(v), nil })
+	builtinStringConverter[complex64](func(v *complex64) (StringConverter, error) { return (*internal.Complex64)(v), nil })
+	builtinStringConverter[complex128](func(v *complex128) (StringConverter, error) { return (*internal.Complex128)(v), nil })
+	builtinStringConverter[time.Time](func(v *time.Time) (StringConverter, error) { return (*internal.Time)(v), nil })
+	builtinStringConverter[[]byte](func(b *[]byte) (StringConverter, error) { return (*internal.ByteSlice)(b), nil })
 }

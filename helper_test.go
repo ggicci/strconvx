@@ -1,4 +1,4 @@
-package stringable
+package strconvx
 
 import (
 	"reflect"

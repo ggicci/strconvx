@@ -1,17 +1,17 @@
-# stringable
+# strconvx
 
 A tiny go package that helps converting values from/to a string.
 
-[![Go](https://github.com/ggicci/stringable/actions/workflows/go.yaml/badge.svg)](https://github.com/ggicci/stringable/actions/workflows/go.yaml)
-[![codecov](https://codecov.io/gh/ggicci/stringable/graph/badge.svg?token=YU7FGGOY60)](https://codecov.io/gh/ggicci/stringable)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ggicci/stringable)](https://goreportcard.com/report/github.com/ggicci/stringable)
-[![Go Reference](https://pkg.go.dev/badge/github.com/ggicci/stringable.svg)](https://pkg.go.dev/github.com/ggicci/stringable)
+[![Go](https://github.com/ggicci/strconvx/actions/workflows/go.yaml/badge.svg)](https://github.com/ggicci/strconvx/actions/workflows/go.yaml)
+[![codecov](https://codecov.io/gh/ggicci/strconvx/graph/badge.svg?token=YU7FGGOY60)](https://codecov.io/gh/ggicci/strconvx)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ggicci/strconvx)](https://goreportcard.com/report/github.com/ggicci/strconvx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/ggicci/strconvx.svg)](https://pkg.go.dev/github.com/ggicci/strconvx)
 
 ## Basic API
 
 ```go
 var yesno bool
-sb, err := stringable.New(&yesno)
+sb, err := strconvx.New(&yesno)
 
 sb.FromString("true")
 sb.ToString()
@@ -23,16 +23,16 @@ sb.ToString()
 - `time.Time`
 - `[]byte`
 
-## The Hybrid Stringable Instance
+## The Hybrid String Converter Instance
 
-When calling `stringable.New(x)` with an instance `x` that is not a Stringable itself, nor any of the above builtin types, it will try to create a _"hybrid" Stringable instance_ from `x` for you.
+When calling `strconvx.New(x)` with an instance `x` that is not a `StringConverter` itself, nor any of the above builtin types, it will try to create a _"hybrid" StringConverter instance_ from `x` for you.
 
-Here is how the "hybrid" Stringable instance will be created:
+Here is how the "hybrid" StringConverter instance will be created:
 
 1. Create a hybrid instance `h` from the given instance `x`;
-2. If `x` has implemented one of [`stringable.StringMarshaler`](https://pkg.go.dev/github.com/ggicci/stringable#StringMarshaler) and [`encoding.TextMarshaler`](https://pkg.go.dev/encoding#TextMarshaler), `h` will use it as the implementation of `stringable.StringMarshaler`, i.e. the `ToString()` method;
-3. If `x` has implemented one of [`stringable.StringUnmarshaler`](https://pkg.go.dev/github.com/ggicci/stringable#StringUnmarshaler) and [`encoding.TextUnmarshaler`](https://pkg.go.dev/encoding#TextUnmarshaler), `h` will use it as the implementation of `stringable.StringUnmarshaler`, i.e. the `FromString()` method;
-4. As long as `h` has an implementation of either `stringable.StringMarshaler` or `stringable.StringUnmarshaler`, we consider `h` is a valid `Stringable` instance. You can require both by passing in a [`CompleteHybrid()` option](#hybrid-options) to `New` method. For a valid `h`, `stringable.New(x)` will return `h`. Otherwise, an `ErrUnsupportedType` occurs.
+2. If `x` has implemented one of [`strconvx.CanToString`](https://pkg.go.dev/github.com/ggicci/strconvx#CanToString) and [`encoding.TextMarshaler`](https://pkg.go.dev/encoding#TextMarshaler), `h` will use it as the implementation of `strconvx.CanToString`, i.e. the `ToString()` method;
+3. If `x` has implemented one of [`strconvx.CanFromString`](https://pkg.go.dev/github.com/ggicci/strconvx#CanFromString) and [`encoding.TextUnmarshaler`](https://pkg.go.dev/encoding#TextUnmarshaler), `h` will use it as the implementation of `strconvx.CanFromString`, i.e. the `FromString()` method;
+4. As long as `h` has an implementation of either `strconvx.CanToString` or `strconvx.CanFromString`, we consider `h` is a valid `StringConverter` instance. You can require both by passing in a [`CompleteHybrid()` option](#hybrid-options) to `New` method. For a valid `h`, `strconvx.New(x)` will return `h`. Otherwise, an `ErrUnsupportedType` occurs.
 
 Example:
 
@@ -47,10 +47,10 @@ func (l *Location) MarshalText() ([]byte, error) {
 }
 
 loc := &Location{3, 4}
-sb, err := stringable.New(loc) // err is nil
+sb, err := strconvx.New(loc) // err is nil
 
 sb.ToString() // L(3,4)
-sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a StringUnmarshaler"
+sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a CanFromString"
 ```
 
 ### Hybrid Options
@@ -60,7 +60,7 @@ sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a StringUnmarshaler"
 
 ## Adapt/Override Existing Types
 
-The [`Namespace.Adapt()`](https://pkg.go.dev/github.com/ggicci/stringable#Namespace.Adapt) API is used to customize the behaviour of `stringable.Stringable` of a specific type. The principal is to create a **type alias** to the target type you want to override, and implement the `Stringable` interface on the new type.
+The [`Namespace.Adapt()`](https://pkg.go.dev/github.com/ggicci/strconvx#Namespace.Adapt) API is used to customize the behaviour of `strconvx.StringConverter` of a specific type. The principal is to create a **type alias** to the target type you want to override, and implement the `StringConverter` interface on the new type.
 
 When should you use this API?
 
@@ -93,8 +93,8 @@ func (yn *YesNo) FromString(s string) error {
 }
 
 func main() {
-	ns := stringable.NewNamespace()
-	typ, adaptor := ToAnyStringableAdaptor(func(b *bool) (Stringable, error) {
+	ns := strconvx.NewNamespace()
+	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
 		return (*YesNo)(b), nil
 	})
 	ns.Adapt(typ, adaptor)
