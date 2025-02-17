@@ -23,6 +23,34 @@ func TestNamespace_Adapt(t *testing.T) {
 	assert.ErrorContains(t, sb.FromString("false"), "invalid value")
 }
 
+func TestNamespace_UndoAdapt(t *testing.T) {
+	ns := NewNamespace()
+	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
+		return (*YesNo)(b), nil
+	})
+	ns.Adapt(typ, adaptor)
+	assert.Contains(t, ns.adaptors, typ)
+
+	ns.UndoAdapt(typ)
+	assert.NotContains(t, ns.adaptors, typ)
+
+	// can call multiple times
+	ns.UndoAdapt(typ)
+	ns.UndoAdapt(typ)
+	assert.NotContains(t, ns.adaptors, typ)
+
+	var yesno bool = true
+	sb, err := ns.New(&yesno)
+	assert.NoError(t, err)
+
+	// will use the builtin bool converter
+	assert.NoError(t, sb.FromString("false"))
+	assert.NoError(t, sb.FromString("1"))
+	// undo adapt make it not able to parse yes/no as expected
+	assert.ErrorContains(t, sb.FromString("no"), "invalid syntax")
+	assert.ErrorContains(t, sb.FromString("yes"), "invalid syntax")
+}
+
 func TestNamespace_NewWithHybridInstanceCreated(t *testing.T) {
 	ns := NewNamespace()
 

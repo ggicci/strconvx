@@ -122,6 +122,11 @@ func (c *Namespace) Adapt(typ reflect.Type, adaptor AnyStringConverterAdaptor) {
 	c.adaptors[typ] = adaptor
 }
 
+// UndoAdapt removes the custom adaptor for the given type. It's a reverse operation of Adapt.
+func (c *Namespace) UndoAdapt(typ reflect.Type) {
+	delete(c.adaptors, typ)
+}
+
 func unsupportedType(rt reflect.Type) error {
 	return fmt.Errorf("%w: %v", ErrUnsupportedType, rt)
 }
