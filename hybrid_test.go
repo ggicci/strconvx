@@ -18,7 +18,7 @@ func TestHybridCoder_TestMarshalerOnly(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "apple", text)
 
-	assert.ErrorIs(t, sb.FromString("red apple"), ErrNotStringUnmarshaler)
+	assert.ErrorIs(t, sb.FromString("red apple"), ErrCannotFromString)
 }
 
 func TestHybridCoder_TextUnmarshalerOnly(t *testing.T) {
@@ -28,7 +28,7 @@ func TestHybridCoder_TextUnmarshalerOnly(t *testing.T) {
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
-	assert.ErrorIs(t, err, ErrNotStringMarshaler)
+	assert.ErrorIs(t, err, ErrCannotToString)
 	assert.Empty(t, text)
 
 	err = sb.FromString("yellow banana")
@@ -62,7 +62,7 @@ func TestHybridCoder_StringMarshaler_TakesPrecedence(t *testing.T) {
 	assert.Equal(t, "ToString:peach", text)
 
 	err = sb.FromString("red peach")
-	assert.ErrorIs(t, err, ErrNotStringUnmarshaler)
+	assert.ErrorIs(t, err, ErrCannotFromString)
 }
 
 func TestHybridCoder_StringUnmarshaler_TakesPrecedence(t *testing.T) {
@@ -72,7 +72,7 @@ func TestHybridCoder_StringUnmarshaler_TakesPrecedence(t *testing.T) {
 	assert.NotNil(t, sb)
 
 	text, err := sb.ToString()
-	assert.ErrorIs(t, err, ErrNotStringMarshaler)
+	assert.ErrorIs(t, err, ErrCannotToString)
 	assert.Empty(t, text)
 
 	err = sb.FromString("red peach")

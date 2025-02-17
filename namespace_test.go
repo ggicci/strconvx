@@ -64,12 +64,12 @@ func TestNamespace_NewWithCompleteHybridOption(t *testing.T) {
 	apple := &TextMarshalerApple{}
 	sb, err := ns.New(apple, CompleteHybrid())
 	assert.Nil(t, sb)
-	assert.ErrorIs(t, err, ErrNotStringUnmarshaler)
+	assert.ErrorIs(t, err, ErrCannotFromString)
 
 	banana := &TextUnmarshalerBanana{"banana"}
 	sb, err = ns.New(banana, CompleteHybrid())
 	assert.Nil(t, sb)
-	assert.ErrorIs(t, err, ErrNotStringMarshaler)
+	assert.ErrorIs(t, err, ErrCannotToString)
 
 	completePineapple := &StringMarshalerAndTextUnmarshalerPineapple{"pineapple"}
 	sb, err = ns.New(completePineapple, CompleteHybrid())
