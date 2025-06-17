@@ -14,14 +14,14 @@ func (h *hybrid) ToString() (string, error) {
 	if h.StringMarshaler != nil {
 		return h.StringMarshaler.ToString()
 	}
-	return "", ErrCannotToString
+	return "", ErrNotStringMarshaler
 }
 
 func (h *hybrid) FromString(s string) error {
 	if h.StringUnmarshaler != nil {
 		return h.StringUnmarshaler.FromString(s)
 	}
-	return ErrCannotFromString
+	return ErrNotStringUnmarshaler
 }
 
 func (h *hybrid) IsValid() bool {
@@ -30,10 +30,10 @@ func (h *hybrid) IsValid() bool {
 
 func (h *hybrid) validateAsComplete() error {
 	if h.StringMarshaler == nil {
-		return ErrCannotToString
+		return ErrNotStringMarshaler
 	}
 	if h.StringUnmarshaler == nil {
-		return ErrCannotFromString
+		return ErrNotStringUnmarshaler
 	}
 	return nil
 }
