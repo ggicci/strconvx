@@ -5,22 +5,22 @@ import (
 	"reflect"
 )
 
-type StringConverterAdaptor[T any] func(*T) (StringConverter, error)
-type AnyStringConverterAdaptor func(any) (StringConverter, error)
+type Adaptor[T any] func(*T) (StringCodec, error)
+type AnyAdaptor func(any) (StringCodec, error)
 
-func ToAnyStringConverterAdaptor[T any](adapt StringConverterAdaptor[T]) (reflect.Type, AnyStringConverterAdaptor) {
-	return typeOf[T](), func(v any) (StringConverter, error) {
+func ToAnyAdaptor[T any](adaptor Adaptor[T]) (reflect.Type, AnyAdaptor) {
+	return typeOf[T](), func(v any) (StringCodec, error) {
 		if cv, ok := v.(*T); ok {
-			return adapt(cv)
+			return adaptor(cv)
 		} else {
 			return nil, fmt.Errorf("%w: cannot convert %T to %s", ErrTypeMismatch, v, typeOf[*T]())
 		}
 	}
 }
 
-var builtinAdaptors = make(map[reflect.Type]AnyStringConverterAdaptor)
+var builtinAdaptors = make(map[reflect.Type]AnyAdaptor)
 
-func builtinStringConverter[T any](adaptor StringConverterAdaptor[T]) {
-	typ, anyAdaptor := ToAnyStringConverterAdaptor[T](adaptor)
+func builtinAdaptor[T any](adaptor Adaptor[T]) {
+	typ, anyAdaptor := ToAnyAdaptor(adaptor)
 	builtinAdaptors[typ] = anyAdaptor
 }

@@ -8,7 +8,7 @@ import (
 
 func TestNamespace_Adapt(t *testing.T) {
 	ns := NewNamespace()
-	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
+	typ, adaptor := ToAnyAdaptor(func(b *bool) (StringCodec, error) {
 		return (*YesNo)(b), nil
 	})
 	ns.Adapt(typ, adaptor)
@@ -25,7 +25,7 @@ func TestNamespace_Adapt(t *testing.T) {
 
 func TestNamespace_UndoAdapt(t *testing.T) {
 	ns := NewNamespace()
-	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
+	typ, adaptor := ToAnyAdaptor(func(b *bool) (StringCodec, error) {
 		return (*YesNo)(b), nil
 	})
 	ns.Adapt(typ, adaptor)

@@ -5,8 +5,8 @@ import "errors"
 var (
 	ErrUnsupportedType  = errors.New("unsupported type")
 	ErrTypeMismatch     = errors.New("type mismatch")
-	ErrCannotToString   = errors.New("not a CanToString")
-	ErrCannotFromString = errors.New("not a CanFromString")
+	ErrCannotToString   = errors.New("not a StringMarshaler")
+	ErrCannotFromString = errors.New("not a StringUnmarshaler")
 	ErrNotPointer       = errors.New("not a pointer")
 	ErrNilPointer       = errors.New("nil pointer")
 )

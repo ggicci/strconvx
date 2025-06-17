@@ -1,26 +1,35 @@
-// strconvx is a tiny package that helps converting values from/to a string.
+// strconvx is a tiny package that helps converting values from/to text.
 package strconvx
 
-// StringConverter defines a type to be able to convert from/to a string.
-type StringConverter interface {
-	CanToString
-	CanFromString
-}
+// StringMarshaler is implemented by types that can represent themselves as a string.
+// It is similar in spirit to encoding.TextMarshaler, but returns a string directly.
+type StringMarshaler interface {
 
-// CanToString defines a type to be able to convert to a string.
-type CanToString interface {
+	// ToString returns the string representation of the value.
 	ToString() (string, error)
 }
 
-// CanFromString defines a type to be able to convert from a string.
-type CanFromString interface {
+// StringUnmarshaler is implemented by types that can parse themselves from a string.
+// It is similar in spirit to encoding.TextUnmarshaler, but accepts a string directly.
+type StringUnmarshaler interface {
+	// FromString parses the value from its string representation.
 	FromString(string) error
 }
 
-// New creates a StringConverter instance from the given value. Note that
-// this method is a wrapper around the default namespace's New method.
-// Which means it doesn't support override/adapt existing types. Please
-// read Namespace.New to learn more.
-func New(v any) (StringConverter, error) {
+// StringCodec is implemented by types that support bidirectional conversion
+// between their value and a string representation.
+//
+// It combines both StringMarshaler and StringUnmarshaler interfaces.
+type StringCodec interface {
+	StringMarshaler
+	StringUnmarshaler
+}
+
+// New creates a StringCodec instance for the given value.
+// This is a shortcut to the default namespace's New method.
+// Note: since this uses the default namespace, it does not support
+// overriding or customizing existing type bindings.
+// For more advanced usage, see Namespace.New.
+func New(v any) (StringCodec, error) {
 	return defaultNS.New(v)
 }

@@ -23,16 +23,16 @@ sb.ToString()
 - `time.Time`
 - `[]byte`
 
-## The Hybrid String Converter Instance
+## The Hybrid String Codec Instance
 
-When calling `strconvx.New(x)` with an instance `x` that is not a `StringConverter` itself, nor any of the above builtin types, it will try to create a _"hybrid" StringConverter instance_ from `x` for you.
+When calling `strconvx.New(x)` with an instance `x` that is not a `StringCodec` itself, nor any of the above builtin types, it will try to create a _"hybrid" StringCodec instance_ from `x` for you.
 
-Here is how the "hybrid" StringConverter instance will be created:
+Here is how the "hybrid" StringCodec instance will be created:
 
 1. Create a hybrid instance `h` from the given instance `x`;
-2. If `x` has implemented one of [`strconvx.CanToString`](https://pkg.go.dev/github.com/ggicci/strconvx#CanToString) and [`encoding.TextMarshaler`](https://pkg.go.dev/encoding#TextMarshaler), `h` will use it as the implementation of `strconvx.CanToString`, i.e. the `ToString()` method;
-3. If `x` has implemented one of [`strconvx.CanFromString`](https://pkg.go.dev/github.com/ggicci/strconvx#CanFromString) and [`encoding.TextUnmarshaler`](https://pkg.go.dev/encoding#TextUnmarshaler), `h` will use it as the implementation of `strconvx.CanFromString`, i.e. the `FromString()` method;
-4. As long as `h` has an implementation of either `strconvx.CanToString` or `strconvx.CanFromString`, we consider `h` is a valid `StringConverter` instance. You can require both by passing in a [`CompleteHybrid()` option](#hybrid-options) to `New` method. For a valid `h`, `strconvx.New(x)` will return `h`. Otherwise, an `ErrUnsupportedType` occurs.
+2. If `x` has implemented one of [`strconvx.StringMarshaler`](https://pkg.go.dev/github.com/ggicci/strconvx#StringMarshaler) and [`encoding.TextMarshaler`](https://pkg.go.dev/encoding#TextMarshaler), `h` will use it as the implementation of `strconvx.StringMarshaler`, i.e. the `ToString()` method;
+3. If `x` has implemented one of [`strconvx.StringUnmarshaler`](https://pkg.go.dev/github.com/ggicci/strconvx#StringUnmarshaler) and [`encoding.TextUnmarshaler`](https://pkg.go.dev/encoding#TextUnmarshaler), `h` will use it as the implementation of `strconvx.StringUnmarshaler`, i.e. the `FromString()` method;
+4. As long as `h` has an implementation of either `strconvx.StringMarshaler` or `strconvx.StringUnmarshaler`, we consider `h` is a valid `StringCodec` instance. You can require both by passing in a [`CompleteHybrid()` option](#hybrid-options) to `New` method. For a valid `h`, `strconvx.New(x)` will return `h`. Otherwise, an `ErrUnsupportedType` occurs.
 
 Example:
 
@@ -50,7 +50,7 @@ loc := &Location{3, 4}
 sb, err := strconvx.New(loc) // err is nil
 
 sb.ToString() // L(3,4)
-sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a CanFromString"
+sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a StringUnmarshaler"
 ```
 
 ### Hybrid Options
@@ -60,7 +60,7 @@ sb.FromString("L(5,6)") // ErrNotStringUnmarshaler, "not a CanFromString"
 
 ## Adapt/Override Existing Types
 
-The [`Namespace.Adapt()`](https://pkg.go.dev/github.com/ggicci/strconvx#Namespace.Adapt) API is used to customize the behaviour of `strconvx.StringConverter` of a specific type. The principal is to create a **type alias** to the target type you want to override, and implement the `StringConverter` interface on the new type.
+The [`Namespace.Adapt()`](https://pkg.go.dev/github.com/ggicci/strconvx#Namespace.Adapt) API is used to customize the behaviour of `strconvx.StringCodec` of a specific type. The principal is to create a **type alias** to the target type you want to override, and implement the `StringCodec` interface on the new type.
 
 When should you use this API?
 
@@ -94,7 +94,7 @@ func (yn *YesNo) FromString(s string) error {
 
 func main() {
 	ns := strconvx.NewNamespace()
-	typ, adaptor := ToAnyStringConverterAdaptor(func(b *bool) (StringConverter, error) {
+	typ, adaptor := ToAnyAdaptor(func(b *bool) (StringCodec, error) {
 		return (*YesNo)(b), nil
 	})
 	ns.Adapt(typ, adaptor)

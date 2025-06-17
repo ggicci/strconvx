@@ -6,61 +6,61 @@ import (
 )
 
 type hybrid struct {
-	CanToString
-	CanFromString
+	StringMarshaler
+	StringUnmarshaler
 }
 
 func (h *hybrid) ToString() (string, error) {
-	if h.CanToString != nil {
-		return h.CanToString.ToString()
+	if h.StringMarshaler != nil {
+		return h.StringMarshaler.ToString()
 	}
 	return "", ErrCannotToString
 }
 
 func (h *hybrid) FromString(s string) error {
-	if h.CanFromString != nil {
-		return h.CanFromString.FromString(s)
+	if h.StringUnmarshaler != nil {
+		return h.StringUnmarshaler.FromString(s)
 	}
 	return ErrCannotFromString
 }
 
 func (h *hybrid) IsValid() bool {
-	return h.CanToString != nil || h.CanFromString != nil
+	return h.StringMarshaler != nil || h.StringUnmarshaler != nil
 }
 
 func (h *hybrid) validateAsComplete() error {
-	if h.CanToString == nil {
+	if h.StringMarshaler == nil {
 		return ErrCannotToString
 	}
-	if h.CanFromString == nil {
+	if h.StringUnmarshaler == nil {
 		return ErrCannotFromString
 	}
 	return nil
 }
 
-// createHybridStringConverter tries to create a hybrid StringConverter from a
+// createHybridStringCodec tries to create a hybrid StringCodec from a
 // reflect.Value. It will make the most of the interfaces rv has implemented,
-// including strconvx.CanToString, strconvx.CanFromString,
+// including strconvx.StringMarshaler, strconvx.StringUnmarshaler,
 // encoding.TextMarshaler, and encoding.TextUnmarshaler. Returns nil if the
 // reflect.Value does not implement any of the above.
-func createHybridStringConverter(rv reflect.Value) StringConverter {
+func createHybridStringCodec(rv reflect.Value) StringCodec {
 	h := &hybrid{}
 
-	// Check strconvx.CanToString and encoding.TextMarshaler.
+	// Check strconvx.StringMarshaler and encoding.TextMarshaler.
 	if rv.Type().Implements(stringMarshalerType) {
-		h.CanToString = rv.Interface().(CanToString)
+		h.StringMarshaler = rv.Interface().(StringMarshaler)
 	} else if rv.Type().Implements(textMarshalerType) {
-		h.CanToString = &textMarshaler{
+		h.StringMarshaler = &textMarshaler{
 			rv.Interface().(encoding.TextMarshaler),
 			nil,
 		}
 	}
 
-	// Check strconvx.CanFromString and encoding.TextUnmarshaler.
+	// Check strconvx.StringUnmarshaler and encoding.TextUnmarshaler.
 	if rv.Type().Implements(stringUnmarshalerType) {
-		h.CanFromString = rv.Interface().(CanFromString)
+		h.StringUnmarshaler = rv.Interface().(StringUnmarshaler)
 	} else if rv.Type().Implements(textUnmarshalerType) {
-		h.CanFromString = &textMarshaler{
+		h.StringUnmarshaler = &textMarshaler{
 			nil,
 			rv.Interface().(encoding.TextUnmarshaler),
 		}
@@ -91,8 +91,8 @@ func (w textMarshaler) FromString(s string) error {
 }
 
 var (
-	stringMarshalerType   = typeOf[CanToString]()
-	stringUnmarshalerType = typeOf[CanFromString]()
+	stringMarshalerType   = typeOf[StringMarshaler]()
+	stringUnmarshalerType = typeOf[StringUnmarshaler]()
 	textMarshalerType     = typeOf[encoding.TextMarshaler]()
 	textUnmarshalerType   = typeOf[encoding.TextUnmarshaler]()
 )

@@ -30,24 +30,24 @@ func (yn *YesNo) FromString(s string) error {
 	return nil
 }
 
-func TestToAnyStringConverterAdaptor(t *testing.T) {
-	typ, adaptor := ToAnyStringConverterAdaptor[bool](func(b *bool) (StringConverter, error) {
+func TestToAnyAdaptor(t *testing.T) {
+	typ, adaptor := ToAnyAdaptor(func(b *bool) (StringCodec, error) {
 		return (*YesNo)(b), nil
 	})
 	assert.Equal(t, typ, typeOf[bool]())
 
 	var validBoolean bool = true
-	converter, err := adaptor(&validBoolean)
+	codec, err := adaptor(&validBoolean)
 	assert.NoError(t, err)
-	v, err := converter.ToString()
+	v, err := codec.ToString()
 	assert.NoError(t, err)
 	assert.Equal(t, "yes", v)
-	assert.NoError(t, converter.FromString("no"))
+	assert.NoError(t, codec.FromString("no"))
 	assert.False(t, validBoolean)
 
 	var invalidType int = 0
-	converter, err = adaptor(&invalidType)
+	codec, err = adaptor(&invalidType)
 	assert.ErrorIs(t, err, ErrTypeMismatch)
-	assert.Nil(t, converter)
+	assert.Nil(t, codec)
 	assert.ErrorContains(t, err, "cannot convert *int to *bool")
 }

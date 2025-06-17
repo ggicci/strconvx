@@ -190,7 +190,7 @@ func testInteger[T Numeric](t *testing.T, vSuccess T, invalidStr string) {
 	assert.Error(t, sv.FromString(invalidStr))
 }
 
-func testTime(t *testing.T, sv StringConverter, fromStr string, expected time.Time, expectedToStr string) {
+func testTime(t *testing.T, sv StringCodec, fromStr string, expected time.Time, expectedToStr string) {
 	assert.NoError(t, sv.FromString(fromStr))
 	assert.True(t, equalTime(expected, time.Time(*sv.(*internal.Time))))
 	ts, err := sv.ToString()
