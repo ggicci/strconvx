@@ -16,11 +16,3 @@ func (c *Complex128) FromString(s string) error {
 	*c = Complex128(v)
 	return nil
 }
-
-func (c Complex128) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(c)
-}
-
-func (c *Complex128) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(c, text)
-}

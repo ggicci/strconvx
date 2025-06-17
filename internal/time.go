@@ -23,14 +23,6 @@ func (t *Time) FromString(s string) error {
 	}
 }
 
-func (t Time) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(t)
-}
-
-func (t *Time) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(t, text)
-}
-
 var reUnixtime = regexp.MustCompile(`^\d+(\.\d{1,9})?$`)
 
 // decodeTime parses data bytes as time.Time in UTC timezone.

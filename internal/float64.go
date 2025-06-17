@@ -16,11 +16,3 @@ func (f *Float64) FromString(s string) error {
 	*f = Float64(v)
 	return nil
 }
-
-func (f Float64) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(f)
-}
-
-func (f *Float64) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(f, text)
-}

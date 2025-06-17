@@ -16,11 +16,3 @@ func (i *Int64) FromString(s string) error {
 	*i = Int64(v)
 	return nil
 }
-
-func (i Int64) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(i)
-}
-
-func (i *Int64) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(i, text)
-}

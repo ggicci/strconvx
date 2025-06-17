@@ -20,11 +20,3 @@ func (bs *ByteSlice) FromString(s string) error {
 	*bs = ByteSlice(v)
 	return nil
 }
-
-func (bs ByteSlice) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(bs)
-}
-
-func (bs *ByteSlice) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(bs, text)
-}

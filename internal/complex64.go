@@ -16,11 +16,3 @@ func (c *Complex64) FromString(s string) error {
 	*c = Complex64(v)
 	return nil
 }
-
-func (c Complex64) MarshalText() ([]byte, error) {
-	return marshalTextViaToString(c)
-}
-
-func (c *Complex64) UnmarshalText(text []byte) error {
-	return unmarshalTextViaFromString(c, text)
-}
