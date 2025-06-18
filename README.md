@@ -1,11 +1,19 @@
 # strconvx
 
-A tiny go package that helps converting values from/to a string.
+**`strconvx`** is a small Go package that defines a unified interface for converting values to and from strings using `ToString` and `FromString`. It also supports wrapping existing types — including those implementing `encoding.TextMarshaler` or `fmt.Stringer` — into a consistent `StringCodec` interface.
 
 [![Go](https://github.com/ggicci/strconvx/actions/workflows/go.yaml/badge.svg)](https://github.com/ggicci/strconvx/actions/workflows/go.yaml)
 [![codecov](https://codecov.io/gh/ggicci/strconvx/graph/badge.svg?token=YU7FGGOY60)](https://codecov.io/gh/ggicci/strconvx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ggicci/strconvx)](https://goreportcard.com/report/github.com/ggicci/strconvx)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ggicci/strconvx.svg)](https://pkg.go.dev/github.com/ggicci/strconvx)
+
+## ✨ Features
+
+- Unified `ToString` and `FromString` interfaces
+- Compatible with `encoding.TextMarshaler` / `TextUnmarshaler`
+- Dynamically wraps existing values with `strconvx.New(...)`
+- Support for most built-in Go scalar types (int, float, bool, etc.)
+- Easy to integrate into `flag.Value`, `envconfig`, `url.Values`, etc.
 
 ## Basic API
 
